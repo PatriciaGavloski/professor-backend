@@ -1,30 +1,31 @@
 import { Model } from 'mongoose';
 import {
-  ListProfessorClassesByFilterPort,
-  ListProfessorClassesByFilterPortInput,
-  ListProfessorClassesByFilterPortResult,
-} from '../../../domain/ports/list-professor-classes-by-filter.port';
-import { ClassDocument } from '../../schemas/class.schema';
+  ListStudentsFromClassByIdPort,
+  ListStudentsFromClassByIdPortInput,
+  ListStudentsFromClassByIdPortResult,
+} from '../../../domain/ports/list-students-from-class-by-id.port';
+import { StudentDocument } from '../../schemas/student.shema';
 
-export class ListProfessorClassesByFilterMongooseAdapter implements ListProfessorClassesByFilterPort {
-  constructor(private readonly ClassModel: Model<ClassDocument>) {}
+export class ListStudentsFromClassByIdMongooseAdapter implements ListStudentsFromClassByIdPort {
+  constructor(private readonly StudentModel: Model<StudentDocument>) {}
 
-  async execute({
-    professorId,
-  }: ListProfessorClassesByFilterPortInput): Promise<ListProfessorClassesByFilterPortResult> {
-    const turmas = (await this.ClassModel.find<ClassDocument>({ professorId }).lean().exec()) as ClassDocument[];
+  async execute({ classId }: ListStudentsFromClassByIdPortInput): Promise<ListStudentsFromClassByIdPortResult> {
 
-    return this.mapClassDocumentToModel(turmas);
+    const students = await this.StudentModel.find<StudentDocument>({ classCodeList: { $in: [classId] } })
+      .lean()
+      .exec();
+
+    // Mapeia os documentos dos estudantes para o formato esperado
+    return this.mapStudentsToModel(students);
   }
 
-  private mapClassDocumentToModel(classDocumentList: ClassDocument[]): ListProfessorClassesByFilterPortResult {
-    return classDocumentList.map((classDocument) => ({
-      code: classDocument.code,
-      courseId: classDocument.courseId,
-      professorId: classDocument.professorId,
-      campus: classDocument.campus,
-      period: classDocument.period,
-      modality: classDocument.modality,
+
+  private mapStudentsToModel(studentDocumentList: StudentDocument[]): ListStudentsFromClassByIdPortResult[] {
+    return studentDocumentList.map(student => ({
+      id: student.id,                
+      name: student.name,            
+      status: student.status,        
+      classCodeList: student.classCodeList,  
     }));
   }
 }
