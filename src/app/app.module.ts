@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { RestModule } from './rest/rest.module';
+import { AlunosModule } from './alunos/alunos.module';
 
 @Module({
-  imports: [RestModule],
+  imports: [AlunosModule], 
 })
 export class AppModule {}
